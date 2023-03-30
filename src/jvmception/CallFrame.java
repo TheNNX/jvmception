@@ -9,6 +9,7 @@ public class CallFrame {
 	private Unit[] operandStack;
 	private Unit[] locals;
 	private CallFrame parent;
+	private CallFrame child;
 	private boolean isReturnPending;
 	private IUnitSerializable returnValue;
 	private int currentIndex;
@@ -25,6 +26,7 @@ public class CallFrame {
 		returnValue = null;
 		this.program = methodCode;
 		this.constPool = constPool;
+		this.child = null;
 	}
 	
 	public short getNextShort() {
@@ -105,7 +107,19 @@ public class CallFrame {
 		return constPool[idx];
 	}
 
-	public void jumpToBranchOffset(short branchOffset) {
-		this.currentIndex += branchOffset;
+	public void jumpToBranchOffset(int originalPc, short branchOffset) {
+		this.currentIndex = originalPc + branchOffset;
+	}
+	
+	public void setChildFrame(CallFrame c) {
+		this.child = c;
+	}
+	
+	public CallFrame getChildFrame() {
+		return this.child;
+	}
+
+	public CallFrame getParent() {
+		return this.parent;
 	}
 }

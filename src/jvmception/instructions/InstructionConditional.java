@@ -9,12 +9,13 @@ public abstract class InstructionConditional extends Instruction {
 	
 	@Override
 	public void execute(CallFrame frame) {
+		int originalPc = frame.getCurrentIndex() - 1;
 		JVMInteger i = new JVMInteger();
 		short branchOffset = frame.getNextShort();
 		frame.pop(i);
 		
 		if (this.checkCondition(i.intValue()))
-			frame.jumpToBranchOffset(branchOffset);
+			frame.jumpToBranchOffset(originalPc, branchOffset);
 	}
 
 }

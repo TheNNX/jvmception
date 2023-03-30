@@ -30,7 +30,7 @@ public class JVMDouble extends JVMFloatingNumber implements IJVMConstPoolType {
 	@Override
 	public void deserialize(Unit[] data) {
 		longConverter.deserialize(data);
-		this.data = longConverter.longValue();
+		this.data = Double.longBitsToDouble(longConverter.longValue());
 	}
 
 	@Override

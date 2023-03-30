@@ -24,7 +24,7 @@ public class Unit implements IUnitSerializable{
 	}
 
 	public int getInt() {
-		return (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | (data[0]);
+		return ((data[0] & 0xFF)<< 24) | ((data[1] & 0xFF) << 16) | ((data[2]& 0xFF) << 8) | (data[3]& 0xFF);
 	}
 	
 	public void setInt(int data) {

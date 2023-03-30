@@ -1,15 +1,28 @@
 package jvmception.jvmtypes;
 
 public class JVMReference implements IUnitSerializable, IJVMConstPoolType{
+	private int objectId;
+	public static final JVMReference NULL_REFERENCE = new JVMReference(0);
+	
+	public JVMReference(int objectId) {
+		this.objectId = objectId;
+	}
+	
+	public JVMReference() {
+		this.objectId = 0;
+	}
+	
 	@Override
 	public Unit[] serialize() {
-		// TODO Auto-generated method stub
-		return null;
+		JVMInteger serialize = new JVMInteger(this.objectId);
+		return serialize.serialize();
 	}
 
 	@Override
 	public void deserialize(Unit[] data) {
-		// TODO Auto-generated method stub
+		JVMInteger deserialize = new JVMInteger();
+		deserialize.deserialize(data);
+		this.objectId = deserialize.intValue();
 	}
 
 	@Override
@@ -20,5 +33,9 @@ public class JVMReference implements IUnitSerializable, IJVMConstPoolType{
 	@Override
 	public IUnitSerializable toIUnitSerializable() {
 		return this;
+	}
+
+	public Object getObjectId() {
+		return objectId;
 	}
 }

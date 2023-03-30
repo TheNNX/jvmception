@@ -25,10 +25,18 @@ import jvmception.jvmtypes.JVMInteger;
 import jvmception.jvmtypes.JVMLong;
 import jvmception.jvmtypes.JVMReference;
 import jvmception.jvmtypes.Unit;
+import jvmception.objects.JVMClass;
+import jvmception.objects.JVMField;
+import jvmception.objects.JVMInstance;
+import jvmception.objects.JVMMethod;
+import jvmception.objects.cp.CpClass;
+import jvmception.objects.cp.CpFieldRef;
+import jvmception.objects.cp.CpNameAndIndex;
+import jvmception.objects.cp.CpUtf8;
+import jvmception.objects.cp.JVMClassFileLoader;
 
 public class InstructionDecoder {
 	private Instruction[] instructionTable;
-	private JVMReference nullReference = new JVMReference();
 	
 	public InstructionDecoder() {
 		instructionTable = new Instruction[256];
@@ -43,7 +51,7 @@ public class InstructionDecoder {
 		};
 		
 		/* aconst_null */
-		instructionTable[0x01] = new InstructionConst(nullReference);
+		instructionTable[0x01] = new InstructionConst(JVMReference.NULL_REFERENCE);
 
 		/* iconst_m1 */
 		instructionTable[0x02] = new InstructionConst(new JVMInteger(-1));
@@ -103,9 +111,8 @@ public class InstructionDecoder {
 			
 			@Override
 			public void execute(CallFrame frame) {
-				byte b1 = frame.getNextByte();
-				byte b2 = frame.getNextByte();
-				JVMInteger i = new JVMInteger((b1 & 0xFF00) | (b2 & 0xFF));
+				short s = frame.getNextShort();
+				JVMInteger i = new JVMInteger(s);
 				frame.push(i);
 			}
 		};
@@ -376,8 +383,8 @@ public class InstructionDecoder {
 			@Override
 			public void execute(CallFrame frame) {
 				Unit u1 = new Unit(), u2 = new Unit();
-				frame.pop(u1);
 				frame.pop(u2);
+				frame.pop(u1);
 				frame.push(u1);
 				frame.push(u2);
 				frame.push(u1);
@@ -390,12 +397,12 @@ public class InstructionDecoder {
 			@Override
 			public void execute(CallFrame frame) {
 				Unit u1 = new Unit(), u2 = new Unit(), u3 = new Unit();
-				frame.pop(u1);
-				frame.pop(u2);
 				frame.pop(u3);
+				frame.pop(u2);
+				frame.pop(u1);
 				frame.push(u1);
-				frame.push(u3);
 				frame.push(u2);
+				frame.push(u3);
 				frame.push(u1);
 			}
 		};
@@ -406,12 +413,12 @@ public class InstructionDecoder {
 			@Override
 			public void execute(CallFrame frame) {
 				Unit u1 = new Unit(), u2 = new Unit();
-				frame.pop(u1);
 				frame.pop(u2);
-				frame.push(u2);
+				frame.pop(u1);
 				frame.push(u1);
 				frame.push(u2);
 				frame.push(u1);
+				frame.push(u2);
 			}
 		};
 		
@@ -421,14 +428,14 @@ public class InstructionDecoder {
 			@Override
 			public void execute(CallFrame frame) {
 				Unit u1 = new Unit(), u2 = new Unit(), u3 = new Unit();
-				frame.pop(u1);
-				frame.pop(u2);
 				frame.pop(u3);
-				frame.push(u2);
+				frame.pop(u2);
+				frame.pop(u1);
 				frame.push(u1);
+				frame.push(u2);
 				frame.push(u3);
-				frame.push(u2);
 				frame.push(u1);
+				frame.push(u2);
 			}
 		};
 		
@@ -438,16 +445,16 @@ public class InstructionDecoder {
 			@Override
 			public void execute(CallFrame frame) {
 				Unit u1 = new Unit(), u2 = new Unit(), u3 = new Unit(), u4 = new Unit();
-				frame.pop(u1);
-				frame.pop(u2);
-				frame.pop(u3);
 				frame.pop(u4);
-				frame.push(u2);
+				frame.pop(u3);
+				frame.pop(u2);
+				frame.pop(u1);
 				frame.push(u1);
-				frame.push(u4);
+				frame.push(u2);
 				frame.push(u3);
-				frame.push(u2);
+				frame.push(u4);
 				frame.push(u1);
+				frame.push(u2);
 			}
 		};
 		
@@ -457,10 +464,10 @@ public class InstructionDecoder {
 			@Override
 			public void execute(CallFrame frame) {
 				Unit u1 = new Unit(), u2 = new Unit();
-				frame.pop(u1);
 				frame.pop(u2);
-				frame.push(u1);
+				frame.pop(u1);
 				frame.push(u2);
+				frame.push(u1);
 			}
 		};
 		
@@ -1030,5 +1037,121 @@ public class InstructionDecoder {
 		
 		/* return  */
 		instructionTable[0xB1] = new InstructionReturn(null);
+		
+		/* getstatic */
+		instructionTable[0xB2] = new Instruction() {
+			
+			@Override
+			public void execute(CallFrame frame) throws Exception {
+				int index = frame.getNextShort() & 0xFFFF;
+				JVMField field = JVMField.getFieldFromCpIndex(frame, index);
+				frame.push(field.get(null));
+			}
+		};
+		
+		/* putstatic */
+		instructionTable[0xB3] = new Instruction() {
+			
+			@Override
+			public void execute(CallFrame frame) throws Exception {
+				int index = frame.getNextShort() & 0xFFFF;
+				JVMField field = JVMField.getFieldFromCpIndex(frame, index);
+				IUnitSerializable dst = field.getContainedType();
+				frame.pop(dst);
+				field.set(null, dst);
+			}
+		};
+		
+		/* getfield */
+		instructionTable[0xB4] = new Instruction() {
+			
+			@Override
+			public void execute(CallFrame frame) throws Exception {
+				JVMReference reference = new JVMReference();
+				frame.pop(reference);
+				int index = frame.getNextShort() & 0xFFFF;
+				JVMField field = JVMField.getFieldFromCpIndex(frame, index);
+				frame.push(field.get(JVMInstance.getFromReference(reference)));
+			}
+		};
+		
+		/* putfield */
+		instructionTable[0xB5] = new Instruction() {
+			
+			@Override
+			public void execute(CallFrame frame) throws Exception {
+				int index = frame.getNextShort() & 0xFFFF;
+				JVMField field = JVMField.getFieldFromCpIndex(frame, index);
+				IUnitSerializable dst = field.getContainedType();
+				frame.pop(dst);
+				JVMReference reference = new JVMReference();
+				frame.pop(reference);
+				field.set(JVMInstance.getFromReference(reference), dst);
+			}
+		};
+		
+		/* invokevirtual */
+		instructionTable[0xB6] = new Instruction() {
+			
+			@Override
+			public void execute(CallFrame frame) throws Exception {
+				int index = frame.getNextShort() & 0xFFFF; 
+				JVMMethod method = JVMMethod.getMethodFromCpIndex(frame, index);
+				JVMReference refernece = new JVMReference();
+				
+				Unit[] arguments = new Unit[method.getArgumentsSize()];
+				arguments[0] = refernece.serialize()[0];
+				for (int i = method.getArgumentsSize() - 2; i >= 0 ; i--) {
+					frame.pop(arguments[i]);
+				}
+				frame.pop(refernece);
+				method.invokeMethod(frame, arguments);
+			}
+		};
+		
+		/* invokespecial */
+		
+		/* invokestatic */
+		instructionTable[0xB8] = new Instruction() {
+			
+			@Override
+			public void execute(CallFrame frame) throws Exception {
+				int index = frame.getNextShort() & 0xFFFF; 
+				JVMMethod method = JVMMethod.getMethodFromCpIndex(frame, index);				
+				Unit[] arguments = new Unit[method.getArgumentsSize()];
+				for (int i = method.getArgumentsSize() - 1; i >= 0 ; i--) {
+					frame.pop(arguments[i]);
+				}
+				method.invokeMethod(frame, arguments);
+			}
+		};
+		
+		/* invokeinterface */
+		/* TODO */
+		instructionTable[0xB9] = instructionTable[0xB8];
+		
+		/* invokedynamic */
+		/* new */
+		/* newarray */
+		/* anewarray */
+		/* arraylength */
+		/* athrow */
+		/* checkcast */
+		/* instanceof */
+		/* monitorenter */
+		/* monitorexit */
+		/* wide */
+		/* multianewarray */
+		/* ifnull */
+		/* ifnonnull */
+		/* goto_w */
+		/* jsr_w */
+	}
+	
+	public void execute(CallFrame f) throws Exception {
+		int instructionByte = f.getNextByte() & 0xFF;
+		System.out.print(f.getCurrentIndex() - 1 + ": " + instructionByte + " ");
+		System.out.println(instructionTable[instructionByte].getClass().getName());
+		instructionTable[instructionByte].execute(f);
 	}
 }

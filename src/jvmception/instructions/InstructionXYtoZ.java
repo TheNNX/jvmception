@@ -2,6 +2,7 @@ package jvmception.instructions;
 
 import jvmception.CallFrame;
 import jvmception.jvmtypes.IUnitSerializable;
+import jvmception.jvmtypes.JVMDouble;
 
 public abstract class InstructionXYtoZ extends Instruction{
 
@@ -17,8 +18,8 @@ public abstract class InstructionXYtoZ extends Instruction{
 	
 	@Override
 	public void execute(CallFrame frame) {		
-		frame.pop(p1);
 		frame.pop(p2);
+		frame.pop(p1);
 		IUnitSerializable result = this.performOperation();
 		frame.push(result);
 	}

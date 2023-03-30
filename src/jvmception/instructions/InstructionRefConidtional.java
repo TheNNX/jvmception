@@ -13,6 +13,7 @@ public class InstructionRefConidtional extends Instruction {
 	
 	@Override
 	public void execute(CallFrame frame) {
+		int originalPc = frame.getCurrentIndex() - 1;
 		JVMReference ref1 = new JVMReference();
 		JVMReference ref2 = new JVMReference();
 		frame.pop(ref2);
@@ -21,7 +22,7 @@ public class InstructionRefConidtional extends Instruction {
 		short branchOffset = frame.getNextShort();;
 		
 		if ((ref2 == ref1) != inverse) {
-			frame.jumpToBranchOffset(branchOffset);
+			frame.jumpToBranchOffset(originalPc, branchOffset);
 		}
 	}
 
