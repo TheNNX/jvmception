@@ -63,4 +63,9 @@ public class JVMFloat extends JVMFloatingNumber implements IJVMConstPoolType {
 	public void set(JVMNumber other) {
 		this.data = other.floatValue();
 	}
+
+	@Override
+	public String toString() {
+		return ""+this.floatValue();
+	}
 }

@@ -17,6 +17,11 @@ public class MethodInfo extends FieldInfo{
 		}
 	}
 
+	protected MethodInfo(String name, String descriptor) {
+		super(name, descriptor);
+		code = new CodeAttribute();
+	}
+
 	public CodeAttribute getCodeAttribute() {
 		return code;
 	}

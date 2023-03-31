@@ -1,13 +1,9 @@
 package jvmception.objects;
 
+import java.util.ArrayList;
+
 import jvmception.CallFrame;
 import jvmception.jvmtypes.IUnitSerializable;
-import jvmception.jvmtypes.JVMArrayReference;
-import jvmception.jvmtypes.JVMDouble;
-import jvmception.jvmtypes.JVMFloat;
-import jvmception.jvmtypes.JVMInteger;
-import jvmception.jvmtypes.JVMLong;
-import jvmception.jvmtypes.JVMReference;
 import jvmception.jvmtypes.Unit;
 import jvmception.objects.cp.CpClass;
 import jvmception.objects.cp.CpFieldRef;
@@ -20,15 +16,26 @@ public class JVMField extends JVMMember {
 
 	private String descriptor;
 	private Unit[] staticStorage = null;
+	private static ArrayList<JVMField> staticFields = new ArrayList<>();
+	private JVMInterface owner;
 	
-	public JVMField(FieldInfo fieldInfo) {
+	public JVMField(FieldInfo fieldInfo, JVMInterface owner) {
 		super(fieldInfo.getName(), Visibility.fromAccessMask(fieldInfo.getAccessFlags()));
 		descriptor = fieldInfo.getDescriptor();
 		
 		if ((fieldInfo.getAccessFlags() & 0x0008) != 0) {
-			/* Two units is enough for every primitive type or a reference. */
-			staticStorage = new JVMLong(0).serialize();
+			staticStorage = getContainedType().serialize();
+			staticFields.add(this);
 		}
+		
+		this.owner = owner;
+	}
+
+	public static JVMField[] getStaticFields() {
+		JVMField[] result = new JVMField[staticFields.size()];
+		for (int i = 0; i < result.length; i++)
+			result[i] = staticFields.get(i);
+		return result;
 	}
 
 	public String getDescriptor() {
@@ -36,32 +43,7 @@ public class JVMField extends JVMMember {
 	}
 	
 	public IUnitSerializable getContainedType() {
-		switch (descriptor.charAt(0)) {
-		case 'B':
-		case 'C':
-			/* TODO: chars and bytes shlouldn't be ints - handle sign extension etc. */
-			return new JVMInteger();
-		case 'D':
-			return new JVMDouble();
-		case 'F':
-			return new JVMFloat();
-		case 'I':
-			return new JVMInteger();
-		case 'J':
-			return new JVMLong();
-		case 'L':
-			return new JVMReference();
-		case 'S':
-			/* TODO: short */
-			return new JVMInteger();
-		case 'Z':
-			/* TODO: boolean */
-			return new JVMInteger();
-		case '[':
-			return new JVMArrayReference();
-		default:
-			return null;
-		}
+		return IUnitSerializable.getTypeFromCode(descriptor.charAt(0));
 	}
 
 	public void set(JVMInstance instance, IUnitSerializable data) {
@@ -94,7 +76,7 @@ public class JVMField extends JVMMember {
 	}
 
 	public boolean isStatic() {
-		return this.staticStorage == null;
+		return this.staticStorage != null;
 	}
 
 	public static JVMField getFieldFromCpIndex(CallFrame frame, int index) throws ClassNotFoundException {
@@ -111,5 +93,9 @@ public class JVMField extends JVMMember {
 		JVMClass theClass = JVMClassFileLoader.getClassByName(className.getString());
 		JVMField field = theClass.getField(fieldName.getString(), descriptor.getString());
 		return field;
+	}
+
+	public JVMInterface getOwner() {
+		return owner;
 	}
 }

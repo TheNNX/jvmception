@@ -4,19 +4,16 @@ import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Hashtable;
-
 import jvmception.CallFrame;
 import jvmception.InstructionDecoder;
-import jvmception.jvmtypes.IJVMConstPoolType;
 import jvmception.objects.JVMClass;
 import jvmception.objects.JVMField;
 import jvmception.objects.JVMInterface;
 import jvmception.objects.JVMMethod;
 import jvmception.objects.Visibility;
 
-public class JVMClassFileLoader {
+public abstract class JVMClassFileLoader {
 	private static Hashtable<String, JVMClass> loadedClasses;
 	private static Hashtable<String, JVMInterface> loadedInterfaces;
 	
@@ -24,8 +21,14 @@ public class JVMClassFileLoader {
 		loadedClasses = new Hashtable<>();
 		
 		String objName = "java/lang/Object";
-		loadedClasses.put(objName, new JVMClass(objName, null, new JVMInterface[0], Visibility.PUBLIC, null));
+		JVMClass objClass = new JVMClass(objName, null, new JVMInterface[0], Visibility.PUBLIC, null);
+	
+		JVMMethod objInit = new JVMMethod(new MethodInfo("<init>", "()V"), null, objClass);
+		objClass.setMethods(new JVMMethod[] {objInit});
+		objClass.setFields(new JVMField[] {});
 		
+		loadedClasses.put(objName, objClass);
+	
 		loadedInterfaces = new Hashtable<>();
 	}
 	
@@ -91,7 +94,7 @@ public class JVMClassFileLoader {
 			JVMField[] fields = new JVMField[numberOfFields];
 			for (int i = 0; i < numberOfFields; i++) {
 				FieldInfo info = new FieldInfo(dis, cpInfo);
-				fields[i] = new JVMField(info);
+				fields[i] = new JVMField(info, result);
 			}
 			loadedClass.setFields(fields);
 		}		
@@ -109,7 +112,7 @@ public class JVMClassFileLoader {
 		JVMMethod[] methods = new JVMMethod[numberOfMethods];
 		for (int i = 0; i < numberOfMethods; i++) {
 			MethodInfo methodInfo = new MethodInfo(dis, cpInfo);
-			methods[i] = new JVMMethod(methodInfo, cpInfo);
+			methods[i] = new JVMMethod(methodInfo, cpInfo, result);
 		}
 				
 		int numberOfAttributes = dis.readUnsignedShort();
@@ -137,18 +140,17 @@ public class JVMClassFileLoader {
 	}
 	
 	public static void main(String[] args) {
-		JVMClassFileLoader cfl = new JVMClassFileLoader();
 		JVMClass mainClass;
 		
 		try {
-			mainClass = (JVMClass) cfl.loadClass("C:\\Users\\Marcin\\eclipse-workspace\\java\\bin\\jfejkf\\Shit.class");
+			mainClass = (JVMClass) JVMClassFileLoader.loadClass(args[0]);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;
 		}
 		
 		try {
-			CallFrame f = new CallFrame(100, 100, null, mainClass.getConstPool(), mainClass.getMethod("main", "([Ljava/lang/String;)V").getCode());
+			CallFrame f = new CallFrame(null, mainClass.getConstPool(), mainClass.getMethod("main", "([Ljava/lang/String;)V"));
 			InstructionDecoder decoder = new InstructionDecoder();
 			
 			while (f != null) {

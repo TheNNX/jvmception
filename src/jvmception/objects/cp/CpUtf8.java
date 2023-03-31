@@ -31,9 +31,9 @@ public class CpUtf8 extends CpInfo {
 			return reference;
 		}
 		try {
-			JVMInstance instance = new JVMInstance(JVMClassFileLoader.getClassByName("java/lang/String"));
+			JVMInstance instance = new JVMInstance(JVMClassFileLoader.getClassByName("java/lang/String"), null);
 			/* TODO load string or something idk */
-			return instance.addReference();
+			return instance.createReference();
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			return null;

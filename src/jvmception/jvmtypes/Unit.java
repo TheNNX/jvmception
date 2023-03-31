@@ -48,4 +48,13 @@ public class Unit implements IUnitSerializable{
 	public int getSerializedSize() {
 		return 1;
 	}
+	
+	@Override
+	public String toString() {
+		String result = "{";
+		for (int i = 0; i < 4; i++)
+			result += ((int)this.data[i]) + ((i == 3) ? "}" : ", ");
+		
+		return result;
+	}
 }

@@ -61,4 +61,9 @@ public class JVMInteger extends JVMNumber implements IJVMConstPoolType {
 	public void set(JVMNumber other) {
 		this.data = other.intValue();
 	}
+
+	@Override
+	public String toString() {
+		return ""+this.intValue();
+	}
 }

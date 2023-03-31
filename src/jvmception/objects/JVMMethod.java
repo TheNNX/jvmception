@@ -5,7 +5,6 @@ import jvmception.jvmtypes.IJVMConstPoolType;
 import jvmception.jvmtypes.IUnitSerializable;
 import jvmception.objects.cp.CodeAttribute;
 import jvmception.objects.cp.CpClass;
-import jvmception.objects.cp.CpFieldRef;
 import jvmception.objects.cp.CpMethodRef;
 import jvmception.objects.cp.CpNameAndIndex;
 import jvmception.objects.cp.CpUtf8;
@@ -16,21 +15,21 @@ public class JVMMethod extends JVMMember {
 	private CodeAttribute codeAttribute;
 	private IJVMConstPoolType[] constPool;
 	private String descriptor;
+	private JVMInterface owner;
 	
-	public JVMMethod(MethodInfo methodInfo, IJVMConstPoolType[] constPool) {
+	public JVMMethod(MethodInfo methodInfo, IJVMConstPoolType[] constPool, JVMInterface owner) {
 		super(methodInfo.getName(), Visibility.fromAccessMask(methodInfo.getAccessFlags()));
 		this.codeAttribute = methodInfo.getCodeAttribute();
 		this.descriptor = methodInfo.getDescriptor();
 		this.constPool = constPool;
+		this.owner = owner;
 	}
 	
 	public CallFrame invokeMethod(CallFrame callerFrame, IUnitSerializable[] params) {
-		CallFrame newFrame = new CallFrame(
-				codeAttribute.getMaxStack(), 
-				codeAttribute.getMaxLocals(), 
-				callerFrame,
-				constPool,
-				codeAttribute.getCode());
+		CallFrame newFrame = new CallFrame(callerFrame, constPool, this);
+		
+		for (int i = 0; i < params.length; i++)
+			newFrame.setLocal(i, params[i]);
 		
 		callerFrame.setChildFrame(newFrame);
 		return newFrame;
@@ -57,11 +56,48 @@ public class JVMMethod extends JVMMember {
 	}
 	
 	public int getArgumentsSize() {
-		/* TODO */
-		return 0;
+		String descriptor = this.getDescriptor();
+		String preParsed = descriptor, preParsed2 = descriptor;
+		
+		do {
+			preParsed2 = preParsed;
+			preParsed = preParsed.replaceFirst("L[^;]*;", "L");
+		} while(!preParsed.equals(preParsed2));
+		
+		preParsed = preParsed.substring(preParsed.indexOf('(') + 1, preParsed.lastIndexOf(')'));
+		
+		preParsed = preParsed.replaceAll("\\[.", "L");
+		preParsed = preParsed.replaceAll("\\[", "");
+		
+		int size = 0;
+		for (int i = 0; i < preParsed.length(); i++) {
+			if (preParsed.charAt(i) == 'D' || preParsed.charAt(i) == 'J')
+				size+=2;
+			else 
+				size++;
+		}
+		
+		return size;
 	}
 
 	public byte[] getCode() {
 		return this.codeAttribute.getCode();
+	}
+
+	public int getMaxStack() {
+		return this.codeAttribute.getMaxStack();
+	}
+	
+	public int getMaxLocals() {
+		return this.codeAttribute.getMaxLocals();
+	}
+	
+	@Override
+	public String toString() {
+		return this.getDescriptor() + " " + this.getMemberName();
+	}
+
+	public JVMInterface getOwner() {
+		return owner;
 	}
 }

@@ -29,11 +29,6 @@ import jvmception.objects.JVMClass;
 import jvmception.objects.JVMField;
 import jvmception.objects.JVMInstance;
 import jvmception.objects.JVMMethod;
-import jvmception.objects.cp.CpClass;
-import jvmception.objects.cp.CpFieldRef;
-import jvmception.objects.cp.CpNameAndIndex;
-import jvmception.objects.cp.CpUtf8;
-import jvmception.objects.cp.JVMClassFileLoader;
 
 public class InstructionDecoder {
 	private Instruction[] instructionTable;
@@ -1099,17 +1094,21 @@ public class InstructionDecoder {
 				JVMMethod method = JVMMethod.getMethodFromCpIndex(frame, index);
 				JVMReference refernece = new JVMReference();
 				
-				Unit[] arguments = new Unit[method.getArgumentsSize()];
-				arguments[0] = refernece.serialize()[0];
-				for (int i = method.getArgumentsSize() - 2; i >= 0 ; i--) {
-					frame.pop(arguments[i]);
+				Unit[] arguments = new Unit[method.getArgumentsSize() + 1];
+				for (int i = 0; i < arguments.length; i++)
+					arguments[i] = new Unit();
+				for (int i = method.getArgumentsSize() - 1; i >= 0 ; i--) {
+					frame.pop(arguments[i + 1]);
 				}
 				frame.pop(refernece);
+				arguments[0] = refernece.serialize()[0];
 				method.invokeMethod(frame, arguments);
 			}
 		};
 		
 		/* invokespecial */
+		/* TODO: initialization checks and stuff. */
+		instructionTable[0xB7] = instructionTable[0xB6];
 		
 		/* invokestatic */
 		instructionTable[0xB8] = new Instruction() {
@@ -1119,6 +1118,8 @@ public class InstructionDecoder {
 				int index = frame.getNextShort() & 0xFFFF; 
 				JVMMethod method = JVMMethod.getMethodFromCpIndex(frame, index);				
 				Unit[] arguments = new Unit[method.getArgumentsSize()];
+				for (int i = 0; i < arguments.length; i++)
+					arguments[i] = new Unit();
 				for (int i = method.getArgumentsSize() - 1; i >= 0 ; i--) {
 					frame.pop(arguments[i]);
 				}
@@ -1127,11 +1128,29 @@ public class InstructionDecoder {
 		};
 		
 		/* invokeinterface */
-		/* TODO */
-		instructionTable[0xB9] = instructionTable[0xB8];
+		instructionTable[0xB9] = new Instruction() {
+			
+			@Override
+			public void execute(CallFrame frame) throws Exception {
+				instructionTable[0xB6].execute(frame);
+				frame.getNextShort();
+			}
+		};
 		
 		/* invokedynamic */
+		
 		/* new */
+		instructionTable[0xBB] = new Instruction() {
+			
+			@Override
+			public void execute(CallFrame frame) throws Exception {
+				int index = frame.getNextShort() & 0xFFFF; 
+				JVMClass jvmClass = JVMClass.getClassFromCpIndex(frame, index);
+				JVMInstance instance = frame.createOwnedInstance(jvmClass);
+				frame.push(new JVMReference(instance));
+			}
+		};
+		
 		/* newarray */
 		/* anewarray */
 		/* arraylength */
@@ -1150,7 +1169,7 @@ public class InstructionDecoder {
 	
 	public void execute(CallFrame f) throws Exception {
 		int instructionByte = f.getNextByte() & 0xFF;
-		System.out.print(f.getCurrentIndex() - 1 + ": " + instructionByte + " ");
+		System.out.print(f.getString() + ": " + instructionByte + " ");
 		System.out.println(instructionTable[instructionByte].getClass().getName());
 		instructionTable[instructionByte].execute(f);
 	}

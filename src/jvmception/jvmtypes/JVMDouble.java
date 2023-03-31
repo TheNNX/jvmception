@@ -1,7 +1,6 @@
 package jvmception.jvmtypes;
 
 public class JVMDouble extends JVMFloatingNumber implements IJVMConstPoolType {
-
 	private double data;
 	private JVMLong longConverter = new JVMLong();
 	
@@ -66,5 +65,10 @@ public class JVMDouble extends JVMFloatingNumber implements IJVMConstPoolType {
 	@Override
 	public void set(JVMNumber other) {
 		this.data = other.doubleValue();
+	}
+
+	@Override
+	public String toString() {
+		return ""+this.doubleValue();
 	}
 }

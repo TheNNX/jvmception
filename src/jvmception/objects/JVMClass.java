@@ -1,6 +1,10 @@
 package jvmception.objects;
 
+import jvmception.CallFrame;
 import jvmception.jvmtypes.IJVMConstPoolType;
+import jvmception.objects.cp.CpClass;
+import jvmception.objects.cp.CpUtf8;
+import jvmception.objects.cp.JVMClassFileLoader;
 
 public class JVMClass extends JVMInterface {	
 	private JVMClass baseClass;
@@ -50,5 +54,12 @@ public class JVMClass extends JVMInterface {
 
 	public IJVMConstPoolType[] getConstPool() {
 		return constPool;
+	}
+
+	public static JVMClass getClassFromCpIndex(CallFrame frame, int index) throws ClassNotFoundException {
+		CpClass cpClass = (CpClass)frame.getConst(index);
+		CpUtf8 className = (CpUtf8)frame.getConst(cpClass.getNameIndex());
+		JVMClass theClass = JVMClassFileLoader.getClassByName(className.getString());
+		return theClass;
 	}
 }

@@ -70,4 +70,9 @@ public class JVMLong extends JVMNumber implements IJVMConstPoolType{
 		this.data = other.longValue();
 	}
 
+	@Override
+	public String toString() {
+		return ""+this.longValue();
+	}
+
 }

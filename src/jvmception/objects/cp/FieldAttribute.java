@@ -4,16 +4,18 @@ import java.io.DataInputStream;
 import java.io.IOException;
 
 public abstract class FieldAttribute {
-	private int attributeLength;
 	private String attributeName;
 	
-	public FieldAttribute(String attributeName, int attributeLenght, DataInputStream dis) {
-		this.attributeLength = attributeLenght;
+	protected FieldAttribute(String attributeName, int attributeLenght, DataInputStream dis) {
 		this.attributeName = attributeName;
 	}
 	
 	public String getAttributeName() {
 		return this.attributeName;
+	}
+	
+	protected FieldAttribute(String attributeName) {
+		this.attributeName = attributeName;
 	}
 
 	private static FieldAttribute loadAttribute(DataInputStream dis, CpInfo[] cpInfo) throws IOException {

@@ -22,6 +22,11 @@ public class FieldInfo{
 		attributes = FieldAttribute.loadAttributes(dis, cpInfo, attributesCount);
 	}
 	
+	protected FieldInfo(String name, String descriptor) {
+		this.name = name;
+		this.descriptor = descriptor;
+	}
+	
 	public String getName() {
 		return this.name;
 	}

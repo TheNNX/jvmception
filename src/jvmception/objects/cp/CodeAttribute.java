@@ -26,6 +26,12 @@ public class CodeAttribute extends FieldAttribute {
 		attributes = FieldAttribute.loadAttributes(dis, cpInfo, attributesCount);
 	}
 
+	protected CodeAttribute() {
+		super("Code");
+		this.maxLocals = 1;
+		code = new byte[] {(byte)(0xB1)};
+	}
+
 	public FieldAttribute[] getAttributes() {
 		return attributes;
 	}

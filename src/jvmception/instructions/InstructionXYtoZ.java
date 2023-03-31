@@ -2,7 +2,6 @@ package jvmception.instructions;
 
 import jvmception.CallFrame;
 import jvmception.jvmtypes.IUnitSerializable;
-import jvmception.jvmtypes.JVMDouble;
 
 public abstract class InstructionXYtoZ extends Instruction{
 
