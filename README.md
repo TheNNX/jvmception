@@ -6,7 +6,7 @@ This is an implementation of most of the JVM instruction set. The `main` branch 
 - Instructions are implemented as subclasses of the abstract class `jvmception.instructions.Instruction` and decoded in `jvmception.InstructionDecoder`. 
 - Class loading and the main method are implemented `jvmception.objects.cp.JVMClassLoader`.
 - Stack management and method invocation are implemented in `jvmeption.CallFrame`.
-- Heap allocations and garbage collection are allocated in `jvmeption.objects.JVMInstance` and `jvmeption.jvmtypes.JVMReference` (this functionality is rather untested though).
+- Heap allocations and garbage collection are implemented in `jvmeption.objects.JVMInstance` and `jvmeption.jvmtypes.JVMReference` (this functionality is rather untested though).
 
 ## Execution times
 Tested with the following program...
