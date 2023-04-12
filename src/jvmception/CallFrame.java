@@ -83,7 +83,7 @@ public class CallFrame {
 	}
 	
 	public void push(IUnitSerializable us) {
-		System.out.println(this.toString() + " - Pusing "+us.toString());
+		//System.out.println(this.toString() + " - Pusing "+us.toString());
 		Unit[] serialized = us.serialize();
 		for (Unit i : serialized) {
 			this.pushUnit(i);
@@ -97,7 +97,7 @@ public class CallFrame {
 			data[i] = this.popUnit();
 		}
 		to.deserialize(data);
-		System.out.println(this.toString() + " - Popping "+to.toString());
+		//System.out.println(this.toString() + " - Popping "+to.toString());
 	}
 	
 	public void getLocal(int idx, IUnitSerializable to) {

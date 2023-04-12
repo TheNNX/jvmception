@@ -35,9 +35,11 @@ public class JVMClass extends JVMInterface {
 			}
 		}
 		if (baseClass != null) {
-			return baseClass.getMethod(name, descriptor);
+			JVMMethod method = baseClass.getMethod(name, descriptor);
+			if (method != null)
+				return method;
 		}
-		throw new NoSuchMethodError(name + " " + descriptor);
+		return null;
 	}
 	
 	public JVMField getField(String name, String descriptor) {
@@ -47,9 +49,11 @@ public class JVMClass extends JVMInterface {
 			}
 		}
 		if (baseClass != null) {
-			return baseClass.getField(name, descriptor);
+			JVMField field = baseClass.getField(name, descriptor);
+			if (field != null)
+				return field;
 		}
-		throw new NoSuchFieldError(name + " " + descriptor);
+		return null;
 	}
 
 	public IJVMConstPoolType[] getConstPool() {

@@ -2,11 +2,8 @@ package jvmception.objects.cp;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.lang.ref.Reference;
-
 import jvmception.jvmtypes.IUnitSerializable;
 import jvmception.jvmtypes.JVMReference;
-import jvmception.objects.JVMInstance;
 
 public class CpString extends CpInfo{
 	private int stringIndex;

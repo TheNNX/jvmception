@@ -1169,8 +1169,8 @@ public class InstructionDecoder {
 	
 	public void execute(CallFrame f) throws Exception {
 		int instructionByte = f.getNextByte() & 0xFF;
-		System.out.print(f.getString() + ": " + instructionByte + " ");
-		System.out.println(instructionTable[instructionByte].getClass().getName());
+		//System.out.print(f.getString() + ": " + instructionByte + " ");
+		//System.out.println(instructionTable[instructionByte].getClass().getName());
 		instructionTable[instructionByte].execute(f);
 	}
 }

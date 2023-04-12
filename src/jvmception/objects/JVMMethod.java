@@ -16,6 +16,7 @@ public class JVMMethod extends JVMMember {
 	private IJVMConstPoolType[] constPool;
 	private String descriptor;
 	private JVMInterface owner;
+	private int argumentsSize;
 	
 	public JVMMethod(MethodInfo methodInfo, IJVMConstPoolType[] constPool, JVMInterface owner) {
 		super(methodInfo.getName(), Visibility.fromAccessMask(methodInfo.getAccessFlags()));
@@ -23,6 +24,7 @@ public class JVMMethod extends JVMMember {
 		this.descriptor = methodInfo.getDescriptor();
 		this.constPool = constPool;
 		this.owner = owner;
+		this.argumentsSize = calculateArgumentsSize();
 	}
 	
 	public CallFrame invokeMethod(CallFrame callerFrame, IUnitSerializable[] params) {
@@ -55,7 +57,7 @@ public class JVMMethod extends JVMMember {
 		return method;
 	}
 	
-	public int getArgumentsSize() {
+	public int calculateArgumentsSize() {
 		String descriptor = this.getDescriptor();
 		String preParsed = descriptor, preParsed2 = descriptor;
 		
@@ -80,6 +82,10 @@ public class JVMMethod extends JVMMember {
 		return size;
 	}
 
+	public int getArgumentsSize() {
+		return argumentsSize;
+	}
+	
 	public byte[] getCode() {
 		return this.codeAttribute.getCode();
 	}
